@@ -75,8 +75,8 @@ async def post(
     status_code=status.HTTP_200_OK,
     response_model=list[AtletaOut],
 )
-async def query(db_session: DatabaseDependency) -> list[AtletaOut]:
-    atletas: list[AtletaOut] = (await db_session.execute(select(AtletaModel))).scalars().all()
+async def query(db_session: DatabaseDependency, limit:int=3, offset:int=0) -> list[AtletaOut]:
+    atletas: list[AtletaOut] = (await db_session.execute(select(AtletaModel).limit(limit).offset(offset))).scalars().all()
     
     return [AtletaOut.model_validate(atleta) for atleta in atletas]
 
