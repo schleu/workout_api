@@ -3,7 +3,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Body, HTTPException, status
 from pydantic import UUID4
 
-from workout_api.atleta.schemas import AtletaIn, AtletaOut, AtletaUpdate
+from workout_api.atleta.schemas import AtletaIn, AtletaOut, AtletaUpdate, AtletaOutput
 from workout_api.atleta.models import AtletaModel
 from workout_api.categorias.models import CategoriaModel
 from workout_api.centro_treinamento.models import CentroTreinamentoModel
@@ -76,12 +76,20 @@ async def post(
     '/', 
     summary='Consultar todos os Atletas',
     status_code=status.HTTP_200_OK,
-    response_model=Page[AtletaOut],
+    response_model=Page[AtletaOutput],
 )
-async def query(db_session: DatabaseDependency, limit:int= 1, offset:int=0) -> Page[AtletaOut]:
-    query = select(AtletaModel)
+async def query(db_session: DatabaseDependency, limit:int= 1, offset:int=0) -> Page[AtletaOutput]:
+    query = (
+        select(
+            AtletaModel.nome, 
+            CentroTreinamentoModel.nome.label('centro_treinamento'),
+            CategoriaModel.nome.label('categoria')
+        )
+        .join(CategoriaModel)
+        .join(CentroTreinamentoModel)
+    )
 
-    page = (offset / limit)+1
+    page = (offset // limit)+1
 
     params = Params(page=page, size=limit)
     
